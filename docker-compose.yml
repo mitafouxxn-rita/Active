@@ -1,0 +1,22 @@
+# ローカル検証用: API サーバー + Redis（キャッシュ・分散レート制限を共有）
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      HOUJIN_APP_ID: ${HOUJIN_APP_ID:-}
+      CORPNORM_CACHE_URL: redis://redis:6379/0
+      CORPNORM_RATE_LIMIT: "5"
+      CORPNORM_API_KEYS: ${CORPNORM_API_KEYS:-}
+      CORPNORM_MAX_BATCH: "1000"
+    depends_on:
+      redis:
+        condition: service_healthy
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10

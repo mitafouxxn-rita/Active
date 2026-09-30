@@ -1,0 +1,24 @@
+{"row": 1, "id": "C0001", "input_name": "（株）青葉システムズ", "code": "ABBREVIATED_LEGAL_FORM", "severity": "info", "field": "name", "message": "略称を「株式会社」に展開しました"}
+{"row": 2, "id": "C0002", "input_name": "青葉システムズ㈱", "code": "ABBREVIATED_LEGAL_FORM", "severity": "info", "field": "name", "message": "略称を「株式会社」に展開しました"}
+{"row": 2, "id": "C0002", "input_name": "青葉システムズ㈱", "code": "PREFECTURE_COMPLETED", "severity": "info", "field": "address", "message": "都道府県「東京都」を市区町村名から補完しました"}
+{"row": 2, "id": "C0002", "input_name": "青葉システムズ㈱", "code": "DUPLICATE_SUSPECTED", "severity": "warning", "field": null, "message": "ID C0001 と重複の疑い（fuzzy, 類似度 0.95）"}
+{"row": 3, "id": "C0003", "input_name": "ｶ)ｱｵﾊﾞｼｽﾃﾑｽﾞ", "code": "BANK_KANA_FORMAT", "severity": "info", "field": "name", "message": "全銀カナ略語を「株式会社」に展開しました（正式商号の確認を推奨）"}
+{"row": 3, "id": "C0003", "input_name": "ｶ)ｱｵﾊﾞｼｽﾃﾑｽﾞ", "code": "POSTAL_CODE_MISSING", "severity": "info", "field": "postal_code", "message": "郵便番号がありません"}
+{"row": 4, "id": "C0004", "input_name": "株式会社 北斗エンジニアリング", "code": "PREFECTURE_COMPLETED", "severity": "info", "field": "address", "message": "都道府県「大阪府」を市区町村名から補完しました"}
+{"row": 5, "id": "C0005", "input_name": "北斗エンジニアリング株式会社", "code": "DUPLICATE_SUSPECTED", "severity": "warning", "field": null, "message": "ID C0004 と重複の疑い（fuzzy, 類似度 0.95）"}
+{"row": 6, "id": "C0006", "input_name": "(有)丸山酒造", "code": "ABBREVIATED_LEGAL_FORM", "severity": "info", "field": "name", "message": "略称を「有限会社」に展開しました"}
+{"row": 7, "id": "C0007", "input_name": "丸山酒造（有）", "code": "ABBREVIATED_LEGAL_FORM", "severity": "info", "field": "name", "message": "略称を「有限会社」に展開しました"}
+{"row": 7, "id": "C0007", "input_name": "丸山酒造（有）", "code": "PREFECTURE_COMPLETED", "severity": "info", "field": "address", "message": "都道府県「三重県」を市区町村名から補完しました"}
+{"row": 7, "id": "C0007", "input_name": "丸山酒造（有）", "code": "DUPLICATE_SUSPECTED", "severity": "warning", "field": null, "message": "ID C0006 と重複の疑い（fuzzy, 類似度 0.95）"}
+{"row": 8, "id": "C0008", "input_name": "旭テクノ", "code": "NO_LEGAL_FORM", "severity": "info", "field": "name", "message": "法人格が見つかりません（個人事業主の屋号、または法人格の欠落）"}
+{"row": 8, "id": "C0008", "input_name": "旭テクノ", "code": "PREFECTURE_COMPLETED", "severity": "info", "field": "address", "message": "都道府県名を「神奈川県」に補完しました"}
+{"row": 9, "id": "C0009", "input_name": "ﾄｸﾋ)ｶｹﾊｼ", "code": "BANK_KANA_FORMAT", "severity": "info", "field": "name", "message": "全銀カナ略語を「特定非営利活動法人」に展開しました（正式商号の確認を推奨）"}
+{"row": 11, "id": "C0011", "input_name": "", "code": "EMPTY_NAME", "severity": "error", "field": "name", "message": "法人名が空です"}
+{"row": 11, "id": "C0011", "input_name": "", "code": "POSTAL_PREFECTURE_MISMATCH", "severity": "error", "field": "postal_code", "message": "郵便番号 530-0001 は「大阪府」の番号ですが、住所は「東京都」です"}
+{"row": 12, "id": "C0012", "input_name": "東洋物産株式会社 名古屋支店", "code": "PREFECTURE_COMPLETED", "severity": "info", "field": "address", "message": "都道府県「愛知県」を市区町村名から補完しました"}
+{"row": 13, "id": "C0013", "input_name": "Aoba Systems Co.，Ltd.", "code": "ENGLISH_LEGAL_SUFFIX", "severity": "info", "field": "name", "message": "英文の法人格表記「Co.,Ltd.」を検出しました"}
+{"row": 13, "id": "C0013", "input_name": "Aoba Systems Co.，Ltd.", "code": "NO_LEGAL_FORM", "severity": "info", "field": "name", "message": "法人格が見つかりません（個人事業主の屋号、または法人格の欠落）"}
+{"row": 14, "id": "C0014", "input_name": "株式会社未来総合研究所株式会社", "code": "MULTIPLE_LEGAL_FORMS", "severity": "warning", "field": "name", "message": "法人格が複数含まれています（株式会社／株式会社）"}
+{"row": 15, "id": "C0015", "input_name": "(株)大和ソリューションズ", "code": "ABBREVIATED_LEGAL_FORM", "severity": "info", "field": "name", "message": "略称を「株式会社」に展開しました"}
+{"row": 15, "id": "C0015", "input_name": "(株)大和ソリューションズ", "code": "PREFECTURE_MISSING", "severity": "error", "field": "address", "message": "都道府県を特定できません"}
+{"row": 15, "id": "C0015", "input_name": "(株)大和ソリューションズ", "code": "POSTAL_CODE_MISSING", "severity": "info", "field": "postal_code", "message": "郵便番号がありません"}
