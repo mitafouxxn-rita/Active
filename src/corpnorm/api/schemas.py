@@ -13,7 +13,7 @@ class IssueModel(BaseModel):
     code: IssueCode = Field(description="検出事項コード")
     severity: Severity
     field: str | None = Field(
-        None, description="対象フィールド（name / address / postal_code ...）"
+        default=None, description="対象フィールド（name / address / postal_code ...）"
     )
     message: str
 
@@ -27,9 +27,9 @@ class NameResult(BaseModel):
     original: str
     normalized: str = Field(description="正規化後の商号（法人格は正式名称に展開）")
     core: str = Field(description="法人格を除いた名称")
-    legal_form: str | None = Field(None, description="法人格（株式会社 など）")
-    legal_form_position: str | None = Field(None, description="prefix=前株 / suffix=後株")
-    branch: str | None = Field(None, description="支店・営業所などの付帯部分")
+    legal_form: str | None = Field(default=None, description="法人格（株式会社 など）")
+    legal_form_position: str | None = Field(default=None, description="prefix=前株 / suffix=後株")
+    branch: str | None = Field(default=None, description="支店・営業所などの付帯部分")
     english_suffix: str | None = None
     match_key: str = Field(description="名寄せ用の比較キー")
     issues: list[IssueModel]
@@ -42,18 +42,18 @@ class AddressRequest(BaseModel):
         }
     )
     address: str = Field(..., max_length=1000)
-    postal_code: str | None = Field(None, max_length=20)
+    postal_code: str | None = Field(default=None, max_length=20)
 
 
 class AddressResult(BaseModel):
     original: str
     normalized: str
-    postal_code: str | None = Field(None, description="123-4567 形式")
+    postal_code: str | None = Field(default=None, description="123-4567 形式")
     prefecture: str | None
-    prefecture_code: str | None = Field(None, description="JIS X 0401 都道府県コード")
+    prefecture_code: str | None = Field(default=None, description="JIS X 0401 都道府県コード")
     city: str | None
     town: str | None
-    block: str | None = Field(None, description="番地（1-2-3 形式）")
+    block: str | None = Field(default=None, description="番地（1-2-3 形式）")
     building: str | None
     match_key: str
     issues: list[IssueModel]
@@ -103,17 +103,17 @@ class EnrichmentResult(BaseModel):
 
 
 class RecordIn(BaseModel):
-    id: str | None = Field(None, max_length=200, description="呼び出し元のレコード ID")
+    id: str | None = Field(default=None, max_length=200, description="呼び出し元のレコード ID")
     name: str = Field(..., max_length=500)
-    address: str | None = Field(None, max_length=1000)
-    postal_code: str | None = Field(None, max_length=20)
-    corporate_number: str | None = Field(None, max_length=20)
+    address: str | None = Field(default=None, max_length=1000)
+    postal_code: str | None = Field(default=None, max_length=20)
+    corporate_number: str | None = Field(default=None, max_length=20)
 
 
 class BatchOptions(BaseModel):
-    enrich: bool = Field(False, description="国税庁 法人番号 API で名寄せする")
-    dedupe: bool = Field(True, description="リクエスト内の重複を判定する")
-    duplicate_threshold: float = Field(0.88, ge=0.5, le=1.0)
+    enrich: bool = Field(default=False, description="国税庁 法人番号 API で名寄せする")
+    dedupe: bool = Field(default=True, description="リクエスト内の重複を判定する")
+    duplicate_threshold: float = Field(default=0.88, ge=0.5, le=1.0)
 
 
 class BatchRequest(BaseModel):
@@ -135,7 +135,7 @@ class BatchRequest(BaseModel):
         }
     )
     records: list[RecordIn] = Field(..., min_length=1, max_length=10_000)
-    options: BatchOptions = BatchOptions()
+    options: BatchOptions = Field(default_factory=BatchOptions)
 
 
 class DuplicateModel(BaseModel):

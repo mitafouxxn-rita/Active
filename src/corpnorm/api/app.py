@@ -153,7 +153,7 @@ def create_app(
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
-        detail = exc.detail if isinstance(exc.detail, dict) else {}
+        detail: dict[str, Any] = exc.detail if isinstance(exc.detail, dict) else {}
         return _error(
             request,
             exc.status_code,

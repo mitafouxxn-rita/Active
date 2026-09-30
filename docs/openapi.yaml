@@ -384,10 +384,6 @@ components:
           title: Records
         options:
           $ref: '#/components/schemas/BatchOptions'
-          default:
-            enrich: false
-            dedupe: true
-            duplicate_threshold: 0.88
       type: object
       required:
       - records

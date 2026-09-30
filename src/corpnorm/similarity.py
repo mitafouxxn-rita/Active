@@ -8,13 +8,19 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from typing import Any
 
-try:  # pragma: no cover - 実行環境に依存
-    from rapidfuzz import process as _rf_process
-    from rapidfuzz.distance import Levenshtein as _RF
-except ImportError:  # pragma: no cover
-    _RF = None
-    _rf_process = None
+
+def _load_rapidfuzz() -> tuple[Any, Any]:
+    try:
+        from rapidfuzz import process
+        from rapidfuzz.distance import Levenshtein
+    except ImportError:  # pragma: no cover - rapidfuzz 非導入環境
+        return None, None
+    return Levenshtein, process
+
+
+_RF, _rf_process = _load_rapidfuzz()
 
 
 def levenshtein_py(a: str, b: str, max_distance: int | None = None) -> int:
