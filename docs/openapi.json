@@ -1,0 +1,1470 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "corpnorm API",
+    "description": "日本の法人名・住所データを正規化し、国税庁 法人番号公表サイトの情報で名寄せ・補完する API です。\n\n* **法人名**: `(株)` `㈱` `ｶ)` などの表記揺れを統一し、前株／後株を判定\n* **住所**: 漢数字・全角数字・丁目番地号を `1-2-3` 形式に統一、都道府県を補完、郵便番号と照合\n* **名寄せ**: 法人番号 API で正式商号・13 桁の法人番号・最新の本店所在地を特定\n* **品質**: 検出事項コードとデータ健全性スコア、リクエスト内の重複候補を返却\n\n認証: `CORPNORM_API_KEYS` を設定した場合、`X-API-Key` ヘッダーが必須になります。",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "死活監視",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "準備状況",
+        "operationId": "readyz_readyz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/meta/issue-codes": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "検出事項コードの一覧",
+        "operationId": "issue_codes_v1_meta_issue_codes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IssueCodeInfo"
+                  },
+                  "type": "array",
+                  "title": "Response Issue Codes V1 Meta Issue Codes Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/normalize/name": {
+      "post": {
+        "tags": [
+          "normalize"
+        ],
+        "summary": "法人名を正規化",
+        "operationId": "post_name_v1_normalize_name_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API キー",
+              "title": "X-Api-Key"
+            },
+            "description": "API キー"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NameRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NameResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API キーが無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "入力値の検証エラー",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/normalize/address": {
+      "post": {
+        "tags": [
+          "normalize"
+        ],
+        "summary": "住所を正規化し郵便番号と照合",
+        "operationId": "post_address_v1_normalize_address_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API キー",
+              "title": "X-Api-Key"
+            },
+            "description": "API キー"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API キーが無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "入力値の検証エラー",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/records/normalize": {
+      "post": {
+        "tags": [
+          "records"
+        ],
+        "summary": "レコードを一括で正規化・名寄せ・重複判定",
+        "description": "1 リクエストあたり最大 1000 件。`options.enrich=true` の場合は法人番号 API で名寄せします（サーバーに HOUJIN_APP_ID が設定されていない場合は 503）。",
+        "operationId": "post_records_v1_records_normalize_post",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API キー",
+              "title": "X-Api-Key"
+            },
+            "description": "API キー"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API キーが無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "入力値の検証エラー",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "件数が上限を超過",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "名寄せ機能が無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/corporations/{corporate_number}": {
+      "get": {
+        "tags": [
+          "corporations"
+        ],
+        "summary": "法人番号から最新の法人情報を取得",
+        "operationId": "get_corporation_v1_corporations__corporate_number__get",
+        "parameters": [
+          {
+            "name": "corporate_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{13}$",
+              "description": "13 桁の法人番号",
+              "title": "Corporate Number"
+            },
+            "description": "13 桁の法人番号"
+          },
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API キー",
+              "title": "X-Api-Key"
+            },
+            "description": "API キー"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorporationModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API キーが無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "入力値の検証エラー",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "法人番号が不正",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "該当なし",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "国税庁 API のエラー",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "名寄せ機能が無効",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddressRequest": {
+        "properties": {
+          "address": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Address"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postal Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "address"
+        ],
+        "title": "AddressRequest",
+        "examples": [
+          {
+            "address": "千代田区霞が関三丁目1番1号",
+            "postal_code": "100-8978"
+          }
+        ]
+      },
+      "AddressResult": {
+        "properties": {
+          "original": {
+            "type": "string",
+            "title": "Original"
+          },
+          "normalized": {
+            "type": "string",
+            "title": "Normalized"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postal Code",
+            "description": "123-4567 形式"
+          },
+          "prefecture": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prefecture"
+          },
+          "prefecture_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prefecture Code",
+            "description": "JIS X 0401 都道府県コード"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "town": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Town"
+          },
+          "block": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block",
+            "description": "番地（1-2-3 形式）"
+          },
+          "building": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Building"
+          },
+          "match_key": {
+            "type": "string",
+            "title": "Match Key"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/IssueModel"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "original",
+          "normalized",
+          "prefecture",
+          "city",
+          "town",
+          "building",
+          "match_key",
+          "issues"
+        ],
+        "title": "AddressResult"
+      },
+      "BatchOptions": {
+        "properties": {
+          "enrich": {
+            "type": "boolean",
+            "title": "Enrich",
+            "description": "国税庁 法人番号 API で名寄せする",
+            "default": false
+          },
+          "dedupe": {
+            "type": "boolean",
+            "title": "Dedupe",
+            "description": "リクエスト内の重複を判定する",
+            "default": true
+          },
+          "duplicate_threshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.5,
+            "title": "Duplicate Threshold",
+            "default": 0.88
+          }
+        },
+        "type": "object",
+        "title": "BatchOptions"
+      },
+      "BatchRequest": {
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/RecordIn"
+            },
+            "type": "array",
+            "maxItems": 10000,
+            "minItems": 1,
+            "title": "Records"
+          },
+          "options": {
+            "$ref": "#/components/schemas/BatchOptions",
+            "default": {
+              "enrich": false,
+              "dedupe": true,
+              "duplicate_threshold": 0.88
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "records"
+        ],
+        "title": "BatchRequest",
+        "examples": [
+          {
+            "options": {
+              "dedupe": true,
+              "enrich": false
+            },
+            "records": [
+              {
+                "address": "大阪市北区梅田1-1-1",
+                "id": "C-001",
+                "name": "（株）山田商事"
+              },
+              {
+                "address": "大阪府大阪市北区梅田一丁目1番1号",
+                "id": "C-002",
+                "name": "山田商事株式会社"
+              }
+            ]
+          }
+        ]
+      },
+      "BatchResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/RecordResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/BatchSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "results",
+          "summary"
+        ],
+        "title": "BatchResponse"
+      },
+      "BatchSummary": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "with_errors": {
+            "type": "integer",
+            "title": "With Errors"
+          },
+          "with_warnings": {
+            "type": "integer",
+            "title": "With Warnings"
+          },
+          "duplicates": {
+            "type": "integer",
+            "title": "Duplicates"
+          },
+          "average_health_score": {
+            "type": "number",
+            "title": "Average Health Score"
+          },
+          "enrichment": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Enrichment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "with_errors",
+          "with_warnings",
+          "duplicates",
+          "average_health_score",
+          "enrichment"
+        ],
+        "title": "BatchSummary"
+      },
+      "CandidateModel": {
+        "properties": {
+          "corporate_number": {
+            "type": "string",
+            "title": "Corporate Number"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "corporate_number",
+          "name",
+          "address",
+          "score"
+        ],
+        "title": "CandidateModel"
+      },
+      "CorporationModel": {
+        "properties": {
+          "corporate_number": {
+            "type": "string",
+            "title": "Corporate Number",
+            "description": "13 桁の法人番号"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "正式商号"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "kind_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind Label"
+          },
+          "furigana": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Furigana"
+          },
+          "en_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "En Name"
+          },
+          "prefecture_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prefecture Name"
+          },
+          "city_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City Name"
+          },
+          "street_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Street Number"
+          },
+          "address": {
+            "type": "string",
+            "title": "Address",
+            "description": "本店所在地"
+          },
+          "post_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Post Code"
+          },
+          "close_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close Date"
+          },
+          "close_cause": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close Cause"
+          },
+          "successor_corporate_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Successor Corporate Number"
+          },
+          "change_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change Date"
+          },
+          "update_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Update Date"
+          },
+          "latest": {
+            "type": "boolean",
+            "title": "Latest",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "corporate_number",
+          "name",
+          "address"
+        ],
+        "title": "CorporationModel"
+      },
+      "DuplicateModel": {
+        "properties": {
+          "of_index": {
+            "type": "integer",
+            "title": "Of Index",
+            "description": "重複元のレコード位置（0 始まり）"
+          },
+          "of_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Of Id"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "description": "corporate_number / exact / fuzzy"
+          }
+        },
+        "type": "object",
+        "required": [
+          "of_index",
+          "score",
+          "kind"
+        ],
+        "title": "DuplicateModel"
+      },
+      "EnrichmentResult": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/MatchStatus"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "corporation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CorporationModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateModel"
+            },
+            "type": "array",
+            "title": "Candidates",
+            "default": []
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/IssueModel"
+            },
+            "type": "array",
+            "title": "Issues",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "EnrichmentResult"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "title": "HealthResponse"
+      },
+      "IssueCode": {
+        "type": "string",
+        "enum": [
+          "EMPTY_NAME",
+          "NO_LEGAL_FORM",
+          "MULTIPLE_LEGAL_FORMS",
+          "ABBREVIATED_LEGAL_FORM",
+          "BANK_KANA_FORMAT",
+          "ENGLISH_LEGAL_SUFFIX",
+          "EMPTY_ADDRESS",
+          "PREFECTURE_MISSING",
+          "PREFECTURE_COMPLETED",
+          "CITY_NOT_DETECTED",
+          "BLOCK_NUMBER_MISSING",
+          "POSTAL_CODE_MISSING",
+          "POSTAL_CODE_INVALID",
+          "POSTAL_CODE_UNKNOWN",
+          "POSTAL_PREFECTURE_MISMATCH",
+          "POSTAL_CITY_MISMATCH",
+          "POSTAL_CODE_CONFLICT",
+          "CORPORATE_NUMBER_INVALID",
+          "CORPORATE_NUMBER_NOT_FOUND",
+          "CORPORATION_NOT_FOUND",
+          "CORPORATION_AMBIGUOUS",
+          "CORPORATION_CLOSED",
+          "CORPORATE_NAME_CHANGED",
+          "ENRICHMENT_FAILED",
+          "DUPLICATE_SUSPECTED",
+          "MALFORMED_ROW"
+        ],
+        "title": "IssueCode"
+      },
+      "IssueCodeInfo": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/IssueCode"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "severity"
+        ],
+        "title": "IssueCodeInfo"
+      },
+      "IssueModel": {
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/IssueCode",
+            "description": "検出事項コード"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field",
+            "description": "対象フィールド（name / address / postal_code ...）"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "severity",
+          "message"
+        ],
+        "title": "IssueModel"
+      },
+      "MatchStatus": {
+        "type": "string",
+        "enum": [
+          "matched",
+          "ambiguous",
+          "not_found",
+          "error",
+          "skipped"
+        ],
+        "title": "MatchStatus"
+      },
+      "NameRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Name",
+            "description": "法人名・屋号"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "NameRequest",
+        "examples": [
+          {
+            "name": "ｶ)ﾔﾏﾀﾞｼｮｳｼﾞ"
+          }
+        ]
+      },
+      "NameResult": {
+        "properties": {
+          "original": {
+            "type": "string",
+            "title": "Original"
+          },
+          "normalized": {
+            "type": "string",
+            "title": "Normalized",
+            "description": "正規化後の商号（法人格は正式名称に展開）"
+          },
+          "core": {
+            "type": "string",
+            "title": "Core",
+            "description": "法人格を除いた名称"
+          },
+          "legal_form": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legal Form",
+            "description": "法人格（株式会社 など）"
+          },
+          "legal_form_position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legal Form Position",
+            "description": "prefix=前株 / suffix=後株"
+          },
+          "branch": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch",
+            "description": "支店・営業所などの付帯部分"
+          },
+          "english_suffix": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "English Suffix"
+          },
+          "match_key": {
+            "type": "string",
+            "title": "Match Key",
+            "description": "名寄せ用の比較キー"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/IssueModel"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "original",
+          "normalized",
+          "core",
+          "match_key",
+          "issues"
+        ],
+        "title": "NameResult"
+      },
+      "ReadinessResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "enrichment_available": {
+            "type": "boolean",
+            "title": "Enrichment Available"
+          },
+          "postal_dictionary_entries": {
+            "type": "integer",
+            "title": "Postal Dictionary Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "enrichment_available",
+          "postal_dictionary_entries"
+        ],
+        "title": "ReadinessResponse"
+      },
+      "RecordIn": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "呼び出し元のレコード ID"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Name"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postal Code"
+          },
+          "corporate_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corporate Number"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RecordIn"
+      },
+      "RecordResult": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "$ref": "#/components/schemas/NameResult"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AddressResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "corporate_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corporate Number"
+          },
+          "enrichment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EnrichmentResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "duplicate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DuplicateModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "health_score": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Health Score",
+            "description": "データ健全性スコア（100 点満点）"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/IssueModel"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "index",
+          "id",
+          "name",
+          "address",
+          "corporate_number",
+          "enrichment",
+          "duplicate",
+          "health_score",
+          "issues"
+        ],
+        "title": "RecordResult"
+      },
+      "Severity": {
+        "type": "string",
+        "enum": [
+          "error",
+          "warning",
+          "info"
+        ],
+        "title": "Severity"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "normalize",
+      "description": "法人名・住所の正規化"
+    },
+    {
+      "name": "records",
+      "description": "レコード一括処理（正規化・名寄せ・重複判定）"
+    },
+    {
+      "name": "corporations",
+      "description": "法人番号 API 連携"
+    },
+    {
+      "name": "meta",
+      "description": "稼働状況・メタ情報"
+    }
+  ]
+}

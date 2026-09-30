@@ -1,0 +1,77 @@
+{
+  "input": "examples/customers.csv",
+  "output": "examples/customers.normalized.csv",
+  "started_at": "2026-09-30T18:47:25+00:00",
+  "finished_at": "2026-09-30T18:47:25+00:00",
+  "elapsed_seconds": 0.003,
+  "rows_per_second": 5039.6,
+  "rows_total": 17,
+  "rows_with_errors": 2,
+  "rows_with_warnings": 4,
+  "error_rate": 0.1176,
+  "duplicates": 3,
+  "health": {
+    "average_score": 92.35,
+    "distribution": {
+      "90-100": 15,
+      "70-89": 1,
+      "50-69": 0,
+      "0-49": 1
+    }
+  },
+  "issues_by_severity": {
+    "info": 17,
+    "warning": 4,
+    "error": 3
+  },
+  "issues_by_code": {
+    "ABBREVIATED_LEGAL_FORM": 5,
+    "PREFECTURE_COMPLETED": 5,
+    "DUPLICATE_SUSPECTED": 3,
+    "BANK_KANA_FORMAT": 2,
+    "POSTAL_CODE_MISSING": 2,
+    "NO_LEGAL_FORM": 2,
+    "EMPTY_NAME": 1,
+    "POSTAL_PREFECTURE_MISMATCH": 1,
+    "ENGLISH_LEGAL_SUFFIX": 1,
+    "MULTIPLE_LEGAL_FORMS": 1,
+    "PREFECTURE_MISSING": 1
+  },
+  "legal_forms": {
+    "株式会社": 10,
+    "(なし)": 3,
+    "有限会社": 2,
+    "特定非営利活動法人": 1,
+    "医療法人社団": 1
+  },
+  "enrichment": {},
+  "error_samples": [
+    {
+      "row": 11,
+      "code": "EMPTY_NAME",
+      "severity": "error",
+      "field": "name",
+      "message": "法人名が空です"
+    },
+    {
+      "row": 11,
+      "code": "POSTAL_PREFECTURE_MISMATCH",
+      "severity": "error",
+      "field": "postal_code",
+      "message": "郵便番号 530-0001 は「大阪府」の番号ですが、住所は「東京都」です"
+    },
+    {
+      "row": 15,
+      "code": "PREFECTURE_MISSING",
+      "severity": "error",
+      "field": "address",
+      "message": "都道府県を特定できません"
+    }
+  ],
+  "columns": {
+    "name": "会社名",
+    "address": "住所",
+    "postal_code": "郵便番号",
+    "id": "取引先コード"
+  }
+}

@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "corpnorm"
+dynamic = ["version"]
+description = "日本の法人名・住所データの正規化／名寄せ／法人番号エンリッチメント（CLI + REST API）"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [{ name = "corpnorm maintainers" }]
+keywords = ["data-cleansing", "normalization", "japanese", "houjin-bangou", "mdm", "csv"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Natural Language :: Japanese",
+  "Topic :: Database",
+  "Topic :: Office/Business",
+]
+dependencies = [
+  "httpx>=0.25",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110", "uvicorn>=0.27", "pydantic>=2.5"]
+redis = ["redis>=5.0"]
+fast = ["rapidfuzz>=3.0"]
+yaml = ["pyyaml>=6.0"]
+dev = [
+  "corpnorm[api,redis,yaml,fast]",
+  "pytest>=8",
+  "pytest-cov>=5",
+  "fakeredis>=2.20",
+  "ruff>=0.4",
+  "mypy>=1.8",
+]
+
+[project.scripts]
+corpnorm = "corpnorm.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "corpnorm.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+corpnorm = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --cov=corpnorm --cov-report=term-missing --cov-fail-under=90"
+pythonpath = ["src"]
+
+[tool.coverage.run]
+branch = true
+source = ["corpnorm"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # 全角文字を意図的に扱うため
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E501"]  # 表記揺れのテストデータは 1 行 1 ケースで並べる
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src/corpnorm"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["corpnorm.api.*"]
+# FastAPI のデコレーター・pydantic の BaseModel は型スタブ経由だと Any 扱いになるため
+disallow_untyped_decorators = false
+disallow_subclassing_any = false
